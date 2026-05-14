@@ -1,0 +1,119 @@
+
+.container.data-v-0f00adf4 {
+	min-height: 100vh;
+	padding-bottom: 120rpx;
+}
+.empty.data-v-0f00adf4 {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding-top: 200rpx;
+}
+.empty-icon.data-v-0f00adf4 {
+	font-size: 120rpx;
+	margin-bottom: 30rpx;
+}
+.empty-text.data-v-0f00adf4 {
+	font-size: 32rpx;
+	color: #999;
+	margin-bottom: 50rpx;
+}
+.empty-btn.data-v-0f00adf4 {
+	background: #3cc51f;
+	color: #fff;
+	padding: 20rpx 60rpx;
+	border-radius: 50rpx;
+	font-size: 28rpx;
+}
+.cart-list.data-v-0f00adf4 {
+	padding: 20rpx;
+}
+.cart-item.data-v-0f00adf4 {
+	display: flex;
+	align-items: center;
+	background: #fff;
+	border-radius: 16rpx;
+	padding: 20rpx;
+	margin-bottom: 20rpx;
+	box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.08);
+}
+.item-image.data-v-0f00adf4 {
+	width: 120rpx;
+	height: 120rpx;
+	border-radius: 12rpx;
+	background: #f0f0f0;
+	flex-shrink: 0;
+}
+.item-info.data-v-0f00adf4 {
+	flex: 1;
+	margin-left: 20rpx;
+}
+.item-name.data-v-0f00adf4 {
+	font-size: 30rpx;
+	color: #333;
+	font-weight: bold;
+	margin-bottom: 10rpx;
+}
+.item-price.data-v-0f00adf4 {
+	font-size: 32rpx;
+	color: #ff6b6b;
+	font-weight: bold;
+}
+.item-control.data-v-0f00adf4 {
+	display: flex;
+	align-items: center;
+}
+.control-btn.data-v-0f00adf4 {
+	width: 50rpx;
+	height: 50rpx;
+	background: #3cc51f;
+	color: #fff;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 32rpx;
+}
+.control-count.data-v-0f00adf4 {
+	margin: 0 20rpx;
+	font-size: 32rpx;
+	font-weight: bold;
+	min-width: 40rpx;
+	text-align: center;
+}
+.settle-bar.data-v-0f00adf4 {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 100rpx;
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 30rpx;
+	box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.1);
+}
+.settle-info.data-v-0f00adf4 {
+	display: flex;
+	align-items: center;
+}
+.settle-label.data-v-0f00adf4 {
+	font-size: 28rpx;
+	color: #666;
+	margin-right: 10rpx;
+}
+.settle-price.data-v-0f00adf4 {
+	font-size: 40rpx;
+	color: #ff6b6b;
+	font-weight: bold;
+}
+.settle-btn.data-v-0f00adf4 {
+	background: #3cc51f;
+	color: #fff;
+	padding: 20rpx 50rpx;
+	border-radius: 50rpx;
+	font-size: 28rpx;
+}
+

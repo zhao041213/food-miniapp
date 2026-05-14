@@ -1,0 +1,17 @@
+{
+	"name": "微信点餐小程序",
+	"version": "1.0.0",
+	"description": "基于uni-app的微信点餐小程序",
+	"main": "main.js",
+	"scripts": {
+		"dev:mp-weixin": "uni -p mp-weixin",
+		"build:mp-weixin": "uni build -p mp-weixin"
+	},
+	"keywords": [
+		"uni-app",
+		"微信小程序",
+		"点餐"
+	],
+	"author": "",
+	"license": "MIT"
+}

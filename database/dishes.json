@@ -1,0 +1,130 @@
+[
+  {
+    "name": "宫保鸡丁",
+    "price": 28,
+    "image": "/static/dishes/placeholder.png",
+    "category": "热菜",
+    "description": "经典川菜，鸡肉鲜嫩，花生酥脆",
+    "status": 1
+  },
+  {
+    "name": "鱼香肉丝",
+    "price": 26,
+    "image": "/static/dishes/placeholder.png",
+    "category": "热菜",
+    "description": "酸甜可口，色泽红亮",
+    "status": 1
+  },
+  {
+    "name": "麻婆豆腐",
+    "price": 18,
+    "image": "/static/dishes/placeholder.png",
+    "category": "热菜",
+    "description": "麻辣鲜香，豆腐嫩滑",
+    "status": 1
+  },
+  {
+    "name": "糖醋里脊",
+    "price": 32,
+    "image": "/static/dishes/placeholder.png",
+    "category": "热菜",
+    "description": "外酥里嫩，酸甜适口",
+    "status": 1
+  },
+  {
+    "name": "红烧肉",
+    "price": 38,
+    "image": "/static/dishes/placeholder.png",
+    "category": "热菜",
+    "description": "肥而不腻，入口即化",
+    "status": 1
+  },
+  {
+    "name": "清蒸鲈鱼",
+    "price": 48,
+    "image": "/static/dishes/placeholder.png",
+    "category": "热菜",
+    "description": "鱼肉鲜嫩，原汁原味",
+    "status": 1
+  },
+  {
+    "name": "酸辣土豆丝",
+    "price": 12,
+    "image": "/static/dishes/placeholder.png",
+    "category": "凉菜",
+    "description": "爽脆开胃，酸辣可口",
+    "status": 1
+  },
+  {
+    "name": "拍黄瓜",
+    "price": 10,
+    "image": "/static/dishes/placeholder.png",
+    "category": "凉菜",
+    "description": "清爽解腻，蒜香浓郁",
+    "status": 1
+  },
+  {
+    "name": "凉拌木耳",
+    "price": 15,
+    "image": "/static/dishes/placeholder.png",
+    "category": "凉菜",
+    "description": "脆嫩爽口，营养丰富",
+    "status": 1
+  },
+  {
+    "name": "皮蛋豆腐",
+    "price": 16,
+    "image": "/static/dishes/placeholder.png",
+    "category": "凉菜",
+    "description": "豆腐嫩滑，皮蛋Q弹",
+    "status": 1
+  },
+  {
+    "name": "西红柿鸡蛋汤",
+    "price": 8,
+    "image": "/static/dishes/placeholder.png",
+    "category": "汤类",
+    "description": "酸甜开胃，营养丰富",
+    "status": 1
+  },
+  {
+    "name": "紫菜蛋花汤",
+    "price": 8,
+    "image": "/static/dishes/placeholder.png",
+    "category": "汤类",
+    "description": "清淡鲜美，补碘佳品",
+    "status": 1
+  },
+  {
+    "name": "酸辣汤",
+    "price": 12,
+    "image": "/static/dishes/placeholder.png",
+    "category": "汤类",
+    "description": "酸辣开胃，浓郁鲜香",
+    "status": 1
+  },
+  {
+    "name": "米饭",
+    "price": 2,
+    "image": "/static/dishes/placeholder.png",
+    "category": "主食",
+    "description": "香软可口",
+    "status": 1
+  },
+  {
+    "name": "馒头",
+    "price": 2,
+    "image": "/static/dishes/placeholder.png",
+    "category": "主食",
+    "description": "松软香甜",
+    "status": 1
+  },
+  {
+    "name": "炒饭",
+    "price": 15,
+    "image": "/static/dishes/placeholder.png",
+    "category": "主食",
+    "description": "粒粒分明，香气扑鼻",
+    "status": 1
+  }
+]

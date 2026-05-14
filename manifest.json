@@ -1,0 +1,28 @@
+{
+	"name" : "微信点餐小程序",
+	"appid" : "wx95e0bd4dcf324804",
+	"description" : "简单的微信点餐小程序",
+	"versionName" : "1.0.0",
+	"versionCode" : "100",
+	"transformPx" : false,
+	"mp-weixin" : {
+		"appid" : "wx95e0bd4dcf324804",
+		"setting" : {
+			"urlCheck" : false,
+			"es6" : true,
+			"postcss" : true,
+			"minified" : true
+		},
+		"usingComponents" : true,
+		"permission" : {
+			"scope.userLocation" : {
+				"desc" : "你的位置信息将用于小程序位置接口的效果展示"
+			}
+		},
+		"cloudfunctionRoot" : "cloudfunctions/"
+	},
+	"quickapp" : {},
+	"h5" : {
+		"title" : "微信点餐小程序"
+	}
+}
