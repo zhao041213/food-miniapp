@@ -109,6 +109,14 @@ export default {
 			})
 			return res
 		},
+		// 生成支付二维码
+		async generateQRCode(orderId, totalPrice) {
+			const res = await callCloudFunction('order', 'generateQRCode', {
+				orderId,
+				totalPrice
+			})
+			return res
+		},
 		// 更新订单状态
 		async updateStatus(id, status) {
 			await callCloudFunction('order', 'updateStatus', { id, status })
@@ -116,6 +124,19 @@ export default {
 				success: true,
 				message: '状态更新成功'
 			}
+		},
+		// 更新支付状态
+		async updatePayStatus(id, payStatus) {
+			await callCloudFunction('order', 'updatePayStatus', { id, payStatus })
+			return {
+				success: true,
+				message: '支付状态更新成功'
+			}
+		},
+		// 获取支付二维码图片链接
+		async getPayQRCodeUrl() {
+			const res = await callCloudFunction('order', 'getPayQRCodeUrl', {})
+			return res
 		},
 		// 删除订单
 		async delete(id) {

@@ -86,7 +86,8 @@ exports.main = async (event, context) => {
               id: item._id,
               name: item.dishName,
               price: item.dishPrice,
-              count: item.count
+              count: item.count,
+              image: item.dishImage || ''
             }))
           }
         })
@@ -96,7 +97,38 @@ exports.main = async (event, context) => {
 
     // 获取单个订单
     case 'getById':
-      return await db.collection('orders').doc(data.id).get()
+      const orderDoc = await db.collection('orders').doc(data.id).get()
+
+      if (!orderDoc.data || orderDoc.data.length === 0) {
+        return {
+          success: false,
+          message: '订单不存在'
+        }
+      }
+
+      const order = orderDoc.data[0]
+
+      // 获取订单详情
+      const itemsResult = await db.collection('order_items')
+        .where({ orderId: data.id })
+        .get()
+
+      console.log('订单数据:', order)
+      console.log('订单项数据:', itemsResult.data)
+
+      return {
+        success: true,
+        data: {
+          ...order,
+          items: itemsResult.data.map(item => ({
+            id: item._id,
+            name: item.dishName,
+            price: item.dishPrice,
+            count: item.count,
+            image: item.dishImage || ''
+          }))
+        }
+      }
 
     // 创建订单
     case 'create':
@@ -105,6 +137,7 @@ exports.main = async (event, context) => {
           userId: data.userId || wxContext.OPENID,
           totalPrice: data.totalPrice,
           status: '制作中',
+          payStatus: '未支付',
           createTime: db.serverDate()
         }
       })
@@ -116,6 +149,7 @@ exports.main = async (event, context) => {
         dishId: item.id,
         dishName: item.name,
         dishPrice: item.price,
+        dishImage: item.image || '',
         count: item.count
       }))
 
@@ -128,11 +162,12 @@ exports.main = async (event, context) => {
         data: {
           id: orderId,
           ...data,
-          status: '制作中'
+          status: '制作中',
+          payStatus: '未支付'
         }
       }
 
-    // 微信支付统一下单
+    // 微信支付统一下单（小程序内支付）
     case 'unifiedOrder':
       try {
         const { orderId, totalPrice, openid } = data
@@ -217,6 +252,74 @@ exports.main = async (event, context) => {
         }
       }
 
+    // 生成Native支付二维码
+    case 'generateQRCode':
+      try {
+        const { orderId, totalPrice } = data
+
+        console.log('生成二维码请求:', { orderId, totalPrice })
+
+        // 构建统一下单参数（Native支付）
+        const params = {
+          appid: APPID,
+          mch_id: MCH_ID,
+          nonce_str: generateNonceStr(),
+          body: '微信点餐-订单支付',
+          out_trade_no: orderId,
+          total_fee: Math.round(totalPrice * 100), // 转换为分
+          spbill_create_ip: '127.0.0.1',
+          notify_url: 'https://cloud1-d0giwawspff81411b.service.tcloudbase.com/payCallback',
+          trade_type: 'NATIVE',
+          product_id: orderId
+        }
+
+        console.log('Native支付参数:', params)
+
+        // 生成签名
+        params.sign = generateSign(params)
+
+        // 转换为XML
+        const xmlData = buildXML(params)
+        console.log('请求XML:', xmlData)
+
+        // 调用微信统一下单接口
+        const response = await axios.post('https://api.mch.weixin.qq.com/pay/unifiedorder', xmlData, {
+          headers: { 'Content-Type': 'application/xml' }
+        })
+
+        console.log('微信返回:', response.data)
+
+        // 解析返回的XML
+        const result = await parseXML(response.data)
+        const xmlResult = result.xml
+
+        console.log('解析后的结果:', xmlResult)
+
+        if (xmlResult.return_code !== 'SUCCESS' || xmlResult.result_code !== 'SUCCESS') {
+          console.error('生成二维码失败:', xmlResult)
+          return {
+            success: false,
+            message: xmlResult.return_msg || xmlResult.err_code_des || '生成二维码失败'
+          }
+        }
+
+        // 返回二维码链接
+        return {
+          success: true,
+          data: {
+            codeUrl: xmlResult.code_url,
+            orderId: orderId,
+            totalPrice: totalPrice
+          }
+        }
+      } catch (error) {
+        console.error('生成二维码失败:', error)
+        return {
+          success: false,
+          message: '生成二维码失败，请重试'
+        }
+      }
+
     // 更新订单状态
     case 'updateStatus':
       return await db.collection('orders').doc(data.id).update({
@@ -224,6 +327,44 @@ exports.main = async (event, context) => {
           status: data.status
         }
       })
+
+    // 更新支付状态
+    case 'updatePayStatus':
+      return await db.collection('orders').doc(data.id).update({
+        data: {
+          payStatus: data.payStatus
+        }
+      })
+
+    // 获取支付二维码图片链接
+    case 'getPayQRCodeUrl':
+      try {
+        const fileID = 'cloud://cloud1-d0giwawspff81411b.636c-cloud1-d0giwawspff81411b-1429623183/qrcode/pay.jpg'
+
+        const result = await cloud.getTempFileURL({
+          fileList: [fileID]
+        })
+
+        if (result.fileList && result.fileList.length > 0 && result.fileList[0].tempFileURL) {
+          return {
+            success: true,
+            data: {
+              url: result.fileList[0].tempFileURL
+            }
+          }
+        } else {
+          return {
+            success: false,
+            message: '获取图片链接失败'
+          }
+        }
+      } catch (error) {
+        console.error('获取图片链接失败:', error)
+        return {
+          success: false,
+          message: error.message || '获取图片链接失败'
+        }
+      }
 
     // 删除订单
     case 'delete':
