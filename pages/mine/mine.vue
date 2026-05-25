@@ -70,7 +70,7 @@
 						<text class="form-label">密码</text>
 						<input class="form-input" v-model="loginForm.password" type="password" placeholder="请输入密码" />
 					</view>
-					<view class="form-tip">管理员账号: 10000000000 密码: admin123</view>
+					<view class="form-tip">管理员账号: 10000 密码: 123456</view>
 					<view class="modal-btns">
 						<view class="modal-btn cancel" @click="showPhoneLogin = false">返回</view>
 						<view class="modal-btn confirm" @click="handleLogin">登录</view>

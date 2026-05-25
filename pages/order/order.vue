@@ -48,13 +48,14 @@
 					<text class="close-btn" @click="closeQRCodeModal">✕</text>
 				</view>
 				<view class="qrcode-amount">应付金额: ¥{{ currentOrder.totalPrice }}</view>
-				<view class="qrcode-wrapper">
-					<image v-if="qrCodeUrl" :src="qrCodeUrl" class="qrcode-image" mode="aspectFit" show-menu-by-longpress></image>
+				<view class="qrcode-wrapper" @tap="previewQRCode">
+					<image v-if="qrCodeUrl" :src="qrCodeUrl" class="qrcode-image" mode="aspectFit"></image>
 					<view v-else class="qrcode-loading">加载中...</view>
 				</view>
-				<view class="qrcode-tip">请使用微信扫一扫进行支付</view>
+				<view class="qrcode-tip">点击二维码预览，然后长按识别支付</view>
 				<view class="qrcode-actions">
-					<button class="confirm-btn" @click="confirmPayment">已完成支付</button>
+					<button class="save-btn" @click.stop="saveQRCode">保存到相册</button>
+					<button class="confirm-btn" @click.stop="confirmPayment">已完成支付</button>
 				</view>
 			</view>
 		</view>
@@ -71,7 +72,8 @@ export default {
 			orders: [],
 			showQRCodeModal: false,
 			currentOrder: null,
-			qrCodeUrl: ''
+			qrCodeUrl: '',
+			paymentUrl: 'https://payapp.wechatpay.cn/sjt/qr/AQG2WcCmC8wmI9JJ-A--MorT' // 支付链接
 		}
 	},
 	onShow() {
@@ -222,6 +224,117 @@ export default {
 				this.showQRCodeModal = false
 				this.currentOrder = null
 				this.qrCodeUrl = ''
+			},
+			// 预览二维码（点击图片时触发）
+			previewQRCode() {
+				if (!this.qrCodeUrl) {
+					uni.showToast({
+						title: '二维码未加载',
+						icon: 'none'
+					})
+					return
+				}
+
+				console.log('预览二维码:', this.qrCodeUrl)
+				uni.previewImage({
+					urls: [this.qrCodeUrl],
+					current: this.qrCodeUrl,
+					success: () => {
+						console.log('图片预览成功，请在预览模式下长按识别')
+					},
+					fail: (err) => {
+						console.error('图片预览失败:', err)
+					}
+				})
+			},
+			// 保存二维码到相册
+			saveQRCode() {
+				if (!this.qrCodeUrl) {
+					uni.showToast({
+						title: '二维码未加载',
+						icon: 'none'
+					})
+					return
+				}
+
+				uni.showLoading({ title: '保存中...' })
+
+				// 先下载网络图片到本地临时文件
+				uni.downloadFile({
+					url: this.qrCodeUrl,
+					success: (res) => {
+						if (res.statusCode === 200) {
+							// 保存到相册
+							uni.saveImageToPhotosAlbum({
+								filePath: res.tempFilePath,
+								success: () => {
+									uni.hideLoading()
+									uni.showModal({
+										title: '保存成功',
+										content: '二维码已保存到相册，请打开微信扫一扫，选择相册中的二维码进行支付',
+										showCancel: false
+									})
+								},
+								fail: (err) => {
+									uni.hideLoading()
+									console.error('保存失败:', err)
+									if (err.errMsg.includes('auth deny')) {
+										uni.showModal({
+											title: '提示',
+											content: '需要授权访问相册',
+											success: (res) => {
+												if (res.confirm) {
+													uni.openSetting()
+												}
+											}
+										})
+									} else {
+										uni.showToast({
+											title: '保存失败',
+											icon: 'none'
+										})
+									}
+								}
+							})
+						} else {
+							uni.hideLoading()
+							uni.showToast({
+								title: '下载图片失败',
+								icon: 'none'
+							})
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading()
+						console.error('下载失败:', err)
+						uni.showToast({
+							title: '下载图片失败',
+							icon: 'none'
+						})
+					}
+				})
+			},
+			// 扫码并支付（直接复制支付链接）
+			scanAndPay() {
+				console.log('复制支付链接')
+				uni.setClipboardData({
+					data: this.paymentUrl,
+					success: () => {
+						uni.showModal({
+							title: '支付链接已复制',
+							content: '请按以下步骤操作：\n1. 点击右上角【...】\n2. 选择【在浏览器中打开】\n3. 在浏览器地址栏粘贴链接\n4. 完成支付后返回小程序',
+							showCancel: false,
+							confirmText: '我知道了'
+						})
+					},
+					fail: (err) => {
+						console.error('复制失败:', err)
+						uni.showToast({
+							title: '复制失败',
+							icon: 'none'
+						})
+					}
+				})
 			},
 			// 确认支付完成
 			confirmPayment() {
@@ -505,6 +618,16 @@ export default {
 .qrcode-actions {
 	display: flex;
 	gap: 20rpx;
+}
+
+.save-btn {
+	flex: 1;
+	background: #07c160;
+	color: #fff;
+	border: none;
+	border-radius: 30rpx;
+	padding: 20rpx;
+	font-size: 28rpx;
 }
 
 .confirm-btn {

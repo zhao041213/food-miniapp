@@ -41,6 +41,9 @@
 						<view v-if="order.status === '待上菜'" class="action-btn complete" @click="updateStatus(order, '已上齐')">
 							已上齐
 						</view>
+						<view class="action-btn delete" @click="deleteOrder(order)">
+							删除
+						</view>
 					</view>
 				</view>
 			</view>
@@ -139,6 +142,41 @@ export default {
 							console.error('更新状态失败:', error)
 							uni.showToast({
 								title: '操作失败',
+								icon: 'none'
+							})
+						}
+					}
+				}
+			})
+		},
+		async deleteOrder(order) {
+			uni.showModal({
+				title: '确认删除',
+				content: `确定要删除订单 ${order.id} 吗？此操作不可恢复！`,
+				success: async (res) => {
+					if (res.confirm) {
+						try {
+							uni.showLoading({ title: '删除中...' })
+							const result = await api.orders.delete(order.id)
+							uni.hideLoading()
+
+							if (result.success) {
+								uni.showToast({
+									title: '删除成功',
+									icon: 'success'
+								})
+								this.loadOrders()
+							} else {
+								uni.showToast({
+									title: result.message || '删除失败',
+									icon: 'none'
+								})
+							}
+						} catch (error) {
+							uni.hideLoading()
+							console.error('删除订单失败:', error)
+							uni.showToast({
+								title: '删除失败',
 								icon: 'none'
 							})
 						}
@@ -328,5 +366,9 @@ export default {
 
 .action-btn.complete {
 	background: #3cc51f;
+}
+
+.action-btn.delete {
+	background: #ff4444;
 }
 </style>

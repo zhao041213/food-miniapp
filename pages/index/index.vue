@@ -1,5 +1,8 @@
 <template>
 	<view class="container">
+		<!-- 遮罩层 -->
+		<view v-if="showHistory && searchHistory.length > 0" class="mask" @click="showHistory = false"></view>
+
 		<!-- 搜索栏 -->
 		<view class="search-bar">
 			<view class="search-input">
@@ -8,8 +11,31 @@
 					v-model="searchKeyword"
 					placeholder="搜索店内商品"
 					placeholder-class="search-placeholder"
+					@focus="showHistory = true"
 					@input="onSearch"
+					@confirm="onSearchConfirm"
 				/>
+				<text v-if="searchKeyword" class="clear-icon" @click="clearSearch">✕</text>
+			</view>
+
+			<!-- 搜索历史 -->
+			<view v-if="showHistory && searchHistory.length > 0" class="search-history">
+				<view class="history-header">
+					<text class="history-title">搜索历史</text>
+					<text class="clear-history" @click="clearAllHistory">清空</text>
+				</view>
+				<view class="history-list">
+					<view
+						v-for="(item, index) in searchHistory"
+						:key="index"
+						class="history-item"
+						@click="selectHistory(item)"
+					>
+						<text class="history-icon">🕐</text>
+						<text class="history-text">{{ item }}</text>
+						<text class="delete-icon" @click.stop="deleteHistory(index)">✕</text>
+					</view>
+				</view>
 			</view>
 		</view>
 
@@ -105,6 +131,8 @@ export default {
 			categories: ['全部', '热菜', '凉菜', '主食', '汤类'],
 			currentCategory: '全部',
 			searchKeyword: '',
+			searchHistory: [],
+			showHistory: false,
 			banners: [],
 			bannerCloudPaths: [
 				'cloud://cloud1-d0giwawspff81411b.636c-cloud1-d0giwawspff81411b-1429623183/banners/banner.png',
@@ -143,6 +171,7 @@ export default {
 	},
 	onLoad() {
 		this.loadData()
+		this.loadSearchHistory()
 	},
 	onShow() {
 		this.loadData()
@@ -188,7 +217,62 @@ export default {
 			this.currentCategory = category
 		},
 		onSearch() {
-			// 搜索逻辑已在 computed 中实现
+			// 实时搜索，逻辑已在 computed 中实现
+			// 如果有搜索结果，隐藏历史记录
+			if (this.searchKeyword.trim()) {
+				this.showHistory = false
+			}
+		},
+		onSearchConfirm() {
+			// 用户按下确认键时保存搜索历史
+			const keyword = this.searchKeyword.trim()
+			if (keyword) {
+				this.saveSearchHistory(keyword)
+				this.showHistory = false
+			}
+		},
+		clearSearch() {
+			this.searchKeyword = ''
+			this.showHistory = true
+		},
+		loadSearchHistory() {
+			const history = storage.get('searchHistory') || []
+			this.searchHistory = history
+		},
+		saveSearchHistory(keyword) {
+			let history = storage.get('searchHistory') || []
+			// 去重：如果已存在，先删除
+			history = history.filter(item => item !== keyword)
+			// 添加到最前面
+			history.unshift(keyword)
+			// 最多保存10条
+			if (history.length > 10) {
+				history = history.slice(0, 10)
+			}
+			storage.set('searchHistory', history)
+			this.searchHistory = history
+		},
+		selectHistory(keyword) {
+			this.searchKeyword = keyword
+			this.showHistory = false
+			this.saveSearchHistory(keyword)
+		},
+		deleteHistory(index) {
+			this.searchHistory.splice(index, 1)
+			storage.set('searchHistory', this.searchHistory)
+		},
+		clearAllHistory() {
+			uni.showModal({
+				title: '提示',
+				content: '确定要清空所有搜索历史吗？',
+				success: (res) => {
+					if (res.confirm) {
+						this.searchHistory = []
+						storage.set('searchHistory', [])
+						this.showHistory = false
+					}
+				}
+			})
 		},
 		addToCart(dish) {
 			const cart = storage.get('cart') || []
@@ -235,7 +319,7 @@ export default {
 	padding: 20rpx 30rpx;
 	position: sticky;
 	top: 0;
-	z-index: 100;
+	z-index: 102;
 }
 
 .search-input {
@@ -258,6 +342,89 @@ export default {
 
 .search-placeholder {
 	color: #999;
+}
+
+.clear-icon {
+	font-size: 32rpx;
+	color: #999;
+	padding: 0 10rpx;
+}
+
+/* 搜索历史 */
+.search-history {
+	position: absolute;
+	top: 100%;
+	left: 30rpx;
+	right: 30rpx;
+	background: #fff;
+	border-radius: 16rpx;
+	box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.1);
+	margin-top: 10rpx;
+	z-index: 103;
+	max-height: 500rpx;
+	overflow-y: auto;
+}
+
+.history-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20rpx 25rpx;
+	border-bottom: 1rpx solid #f0f0f0;
+}
+
+.history-title {
+	font-size: 28rpx;
+	color: #333;
+	font-weight: bold;
+}
+
+.clear-history {
+	font-size: 24rpx;
+	color: #999;
+}
+
+.history-list {
+	padding: 10rpx 0;
+}
+
+.history-item {
+	display: flex;
+	align-items: center;
+	padding: 20rpx 25rpx;
+	transition: background 0.3s;
+}
+
+.history-item:active {
+	background: #f5f5f5;
+}
+
+.history-icon {
+	font-size: 28rpx;
+	margin-right: 15rpx;
+}
+
+.history-text {
+	flex: 1;
+	font-size: 28rpx;
+	color: #666;
+}
+
+.delete-icon {
+	font-size: 32rpx;
+	color: #ccc;
+	padding: 0 10rpx;
+}
+
+/* 遮罩层 */
+.mask {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.3);
+	z-index: 101;
 }
 
 /* 店铺信息 */

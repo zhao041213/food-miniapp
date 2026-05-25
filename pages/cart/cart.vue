@@ -46,13 +46,15 @@
 						:src="qrcodeSrc"
 						class="qrcode-image"
 						mode="aspectFit"
+						show-menu-by-longpress
+						@tap="previewQRCode"
 						@load="onImageLoad"
 						@error="onImageError"
 					></image>
 				</view>
-				<view class="pay-tip">识别此收款码</view>
+				<view class="pay-tip">点击下方按钮复制支付链接</view>
 				<view class="pay-actions">
-					<button class="scan-btn primary" @click="recognizeQRCode">识别并支付</button>
+					<button class="scan-btn primary" @click="scanAndPay">复制支付链接</button>
 					<button class="confirm-btn" @click="confirmPayment">已完成支付</button>
 				</view>
 			</view>
@@ -70,7 +72,8 @@ export default {
 			cart: [],
 			showPayModal: false,
 			debugMsg: '等待操作...',
-			qrcodeSrc: ''
+			qrcodeSrc: '',
+			paymentUrl: 'https://payapp.wechatpay.cn/sjt/qr/AQG2WcCmC8wmI9JJ-A--MorT' // 支付链接
 		}
 	},
 	computed: {
@@ -215,6 +218,28 @@ export default {
 				}
 			})
 		},
+		// 预览二维码（点击图片时触发）
+		previewQRCode() {
+			if (!this.qrcodeSrc) {
+				uni.showToast({
+					title: '二维码未加载',
+					icon: 'none'
+				})
+				return
+			}
+
+			console.log('预览二维码:', this.qrcodeSrc)
+			uni.previewImage({
+				urls: [this.qrcodeSrc],
+				current: this.qrcodeSrc,
+				success: () => {
+					console.log('图片预览成功，请在预览模式下长按识别')
+				},
+				fail: (err) => {
+					console.error('图片预览失败:', err)
+				}
+			})
+		},
 		// 识别并支付
 		recognizeQRCode() {
 			console.log('点击识别并支付')
@@ -284,30 +309,114 @@ export default {
 				return
 			}
 
-			uni.saveImageToPhotosAlbum({
-				filePath: this.qrcodeSrc,
-				success: () => {
-					uni.showToast({
-						title: '已保存到相册',
-						icon: 'success'
-					})
-				},
-				fail: (err) => {
-					console.error('保存失败:', err)
-					if (err.errMsg.includes('auth deny')) {
-						uni.showModal({
-							title: '提示',
-							content: '需要授权访问相册',
-							success: (res) => {
-								if (res.confirm) {
-									uni.openSetting()
+			uni.showLoading({ title: '保存中...' })
+
+			// 先下载网络图片到本地临时文件
+			uni.downloadFile({
+				url: this.qrcodeSrc,
+				success: (res) => {
+					if (res.statusCode === 200) {
+						// 保存到相册
+						uni.saveImageToPhotosAlbum({
+							filePath: res.tempFilePath,
+							success: () => {
+								uni.hideLoading()
+								uni.showModal({
+									title: '保存成功',
+									content: '二维码已保存到相册，请打开微信扫一扫，选择相册中的二维码进行支付',
+									showCancel: false
+								})
+							},
+							fail: (err) => {
+								uni.hideLoading()
+								console.error('保存失败:', err)
+								if (err.errMsg.includes('auth deny')) {
+									uni.showModal({
+										title: '提示',
+										content: '需要授权访问相册',
+										success: (res) => {
+											if (res.confirm) {
+												uni.openSetting()
+											}
+										}
+									})
+								} else {
+									uni.showToast({
+										title: '保存失败',
+										icon: 'none'
+									})
 								}
 							}
 						})
 					} else {
+						uni.hideLoading()
 						uni.showToast({
-							title: '保存失败',
+							title: '下载图片失败',
 							icon: 'none'
+						})
+					}
+				},
+				fail: (err) => {
+					uni.hideLoading()
+					console.error('下载失败:', err)
+					uni.showToast({
+						title: '下载图片失败',
+						icon: 'none'
+					})
+					}
+			})
+		},
+		// 扫码并支付（直接复制支付链接）
+		scanAndPay() {
+			console.log('复制支付链接')
+			uni.setClipboardData({
+				data: this.paymentUrl,
+				success: () => {
+					uni.showModal({
+						title: '支付链接已复制',
+						content: '请按以下步骤操作：\n1. 点击右上角【...】\n2. 选择【在浏览器中打开】\n3. 在浏览器地址栏粘贴链接\n4. 完成支付后返回小程序',
+						showCancel: false,
+						confirmText: '我知道了'
+					})
+				},
+				fail: (err) => {
+					console.error('复制失败:', err)
+					uni.showToast({
+						title: '复制失败',
+						icon: 'none'
+					})
+				}
+			})
+		},
+		// 测试扫码识别（诊断功能）
+		testScanQRCode() {
+			console.log('开始测试扫码识别')
+			uni.showModal({
+				title: '测试说明',
+				content: '这个功能会调用微信扫一扫，从相册选择二维码图片进行识别测试。如果能识别成功，说明图片本身是有效的二维码。',
+				confirmText: '开始测试',
+				success: (res) => {
+					if (res.confirm) {
+						// 使用 wx.scanCode 从相册选择图片识别
+						wx.scanCode({
+							onlyFromCamera: false, // 允许从相册选择
+							scanType: ['qrCode'], // 只识别二维码
+							success: (scanRes) => {
+								console.log('扫码成功:', scanRes)
+								uni.showModal({
+									title: '识别成功',
+									content: '二维码内容: ' + scanRes.result,
+									showCancel: false
+								})
+							},
+							fail: (err) => {
+								console.error('扫码失败:', err)
+								uni.showModal({
+									title: '识别失败',
+									content: err.errMsg || '无法识别二维码',
+									showCancel: false
+								})
+							}
 						})
 					}
 				}

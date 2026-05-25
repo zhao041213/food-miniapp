@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(\\(Get-Content \"D:\\\\food-miniapp\\\\pages\\\\order\\\\order.vue\" -Raw\\) -split \"`n\" | Select-Object -Skip 369 -First 8 | ForEach-Object { \"[\" + $_ + \"]\" })",
+      "PowerShell(\\(Get-Content \"D:\\\\food-miniapp\\\\pages\\\\order\\\\order.vue\" -Raw\\) -split \"`n\" | Select-Object -Skip 365 -First 10 | ForEach-Object { $i = 366; \"[Line $i] $_\"; $i++ })",
+      "PowerShell($lines = Get-Content \"D:\\\\food-miniapp\\\\pages\\\\order\\\\order.vue\"; for \\($i = 365; $i -lt 377; $i++\\) { Write-Output \"$i`: $\\($lines[$i]\\)\" })",
+      "PowerShell($lines = Get-Content \"D:\\\\food-miniapp\\\\pages\\\\order\\\\order.vue\"; for \\($i = 410; $i -lt 420; $i++\\) { Write-Output \"$i`: $\\($lines[$i]\\)\" })",
+      "PowerShell($lines = Get-Content \"D:\\\\food-miniapp\\\\pages\\\\order\\\\order.vue\"; for \\($i = 405; $i -lt 415; $i++\\) { Write-Output \"$i`: $\\($lines[$i]\\)\" })",
+      "PowerShell(Get-Content *)",
+      "WebFetch(domain:developers.weixin.qq.com)"
+    ]
+  }
+}
