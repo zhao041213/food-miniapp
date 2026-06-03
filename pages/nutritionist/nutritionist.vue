@@ -1,34 +1,49 @@
 <template>
 	<view class="container">
 		<view class="hero">
-			<view>
-				<view class="eyebrow">AI RECOMMEND</view>
-				<view class="title">AI菜品推荐</view>
-				<view class="subtitle">为你挑选店内热卖菜品</view>
+			<view class="eyebrow">AI NUTRITIONIST</view>
+			<view class="title">AI营养师</view>
+			<view class="subtitle">输入基础信息，生成适合你的菜品组合</view>
+		</view>
+
+		<view class="form-panel">
+			<view class="form-row">
+				<view class="field">
+					<text class="field-label">身高 cm</text>
+					<input class="field-input" type="number" v-model="form.height" placeholder="170" />
+				</view>
+				<view class="field">
+					<text class="field-label">体重 kg</text>
+					<input class="field-input" type="digit" v-model="form.weight" placeholder="65" />
+				</view>
 			</view>
-			<button class="refresh-btn" :disabled="loading" @click="refreshRecommendations">
-				换一批
+			<view class="field">
+				<text class="field-label">年龄</text>
+				<input class="field-input" type="number" v-model="form.age" placeholder="30" />
+			</view>
+			<button class="primary-btn" :disabled="loading" @click="generateRecommendations">
+				生成推荐
 			</button>
 		</view>
 
-		<view class="nutrition-entry" @click="goToNutritionist">
-			<view>
-				<view class="entry-title">AI营养师</view>
-				<view class="entry-desc">按身高、体重和年龄推荐菜品</view>
+		<view v-if="profile" class="profile-card">
+			<view class="profile-main">
+				<text class="profile-label">BMI</text>
+				<text class="profile-value">{{ profile.bmi }}</text>
 			</view>
-			<view class="entry-action">去测算</view>
+			<view class="profile-summary">{{ profile.summary }}</view>
 		</view>
 
 		<view v-if="loading" class="state">
-			<view class="state-title">正在加载</view>
+			<view class="state-title">正在分析</view>
 		</view>
 
-		<view v-else-if="recommendations.length === 0" class="state">
+		<view v-else-if="hasGenerated && recommendations.length === 0" class="state">
 			<view class="state-title">暂无可推荐菜品</view>
-			<button class="state-btn" @click="loadData">重新加载</button>
+			<button class="state-btn" @click="loadDishes">重新加载</button>
 		</view>
 
-		<view v-else class="recommend-list">
+		<view v-else-if="recommendations.length > 0" class="recommend-list">
 			<view
 				v-for="dish in recommendations"
 				:key="dish.id"
@@ -43,15 +58,13 @@
 				<view v-else class="dish-image placeholder">
 					<text>AI</text>
 				</view>
-
 				<view class="dish-info">
 					<view class="dish-name">{{ dish.name }}</view>
-					<view class="dish-desc">{{ dish.description || dish.category || '今日推荐菜品' }}</view>
-					<view class="dish-meta">
+					<view class="dish-reason">{{ dish.reason }}</view>
+					<view class="dish-bottom">
 						<view class="dish-price">¥{{ dish.price }}</view>
-						<view v-if="dish.sales" class="dish-sales">月售 {{ dish.sales }}</view>
+						<button class="add-btn" @click="addToCart(dish)">加入购物车</button>
 					</view>
-					<button class="order-btn" @click="addToCart(dish)">加入购物车</button>
 				</view>
 			</view>
 		</view>
@@ -73,14 +86,22 @@
 import api from '@/utils/api.js'
 import storage from '@/utils/storage.js'
 import * as recommendation from '@/utils/recommendation.js'
+import * as nutritionist from '@/utils/nutritionist.js'
 
 export default {
 	data() {
 		return {
+			form: {
+				height: '',
+				weight: '',
+				age: ''
+			},
 			dishes: [],
 			recommendations: [],
+			profile: null,
 			cart: [],
-			loading: false
+			loading: false,
+			hasGenerated: false
 		}
 	},
 	computed: {
@@ -95,13 +116,13 @@ export default {
 		}
 	},
 	onLoad() {
-		this.loadData()
+		this.loadDishes()
 	},
 	onShow() {
 		this.loadCart()
 	},
 	methods: {
-		async loadData() {
+		async loadDishes() {
 			this.loading = true
 			try {
 				const res = await api.dishes.getAll(false)
@@ -110,10 +131,9 @@ export default {
 						...dish,
 						id: dish.id || dish._id
 					}))
-					this.refreshRecommendations()
 				}
 			} catch (error) {
-				console.error('获取推荐菜品失败:', error)
+				console.error('获取营养推荐菜品失败:', error)
 				uni.showToast({
 					title: '加载失败',
 					icon: 'none'
@@ -123,8 +143,23 @@ export default {
 				this.loadCart()
 			}
 		},
-		refreshRecommendations() {
-			this.recommendations = recommendation.pickRecommendedDishes(this.dishes, 3)
+		async generateRecommendations() {
+			try {
+				this.profile = nutritionist.buildNutritionProfile(this.form)
+			} catch (error) {
+				uni.showToast({
+					title: error.message,
+					icon: 'none'
+				})
+				return
+			}
+
+			if (this.dishes.length === 0) {
+				await this.loadDishes()
+			}
+
+			this.recommendations = nutritionist.recommendNutritionDishes(this.dishes, this.profile, 3)
+			this.hasGenerated = true
 		},
 		loadCart() {
 			this.cart = storage.get('cart') || []
@@ -137,11 +172,6 @@ export default {
 				title: '已加入购物车',
 				icon: 'success',
 				duration: 1000
-			})
-		},
-		goToNutritionist() {
-			uni.navigateTo({
-				url: '/pages/nutritionist/nutritionist'
 			})
 		},
 		goToCart() {
@@ -168,17 +198,20 @@ export default {
 	box-sizing: border-box;
 }
 
-.hero {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 24rpx;
-	padding: 30rpx 28rpx;
+.hero,
+.form-panel,
+.profile-card,
+.recommend-item,
+.state {
 	background: #ffffff;
 	border-radius: 8rpx;
-	border-left: 8rpx solid #ff6b35;
 	box-shadow: 0 4rpx 18rpx rgba(20, 24, 32, 0.06);
-	margin-bottom: 24rpx;
+}
+
+.hero {
+	padding: 30rpx 28rpx;
+	border-left: 8rpx solid #2f855a;
+	margin-bottom: 22rpx;
 }
 
 .eyebrow {
@@ -201,77 +234,119 @@ export default {
 	margin-top: 10rpx;
 }
 
-.refresh-btn,
-.state-btn {
-	margin: 0;
-	min-width: 150rpx;
-	height: 66rpx;
-	line-height: 66rpx;
-	padding: 0 26rpx;
-	border-radius: 8rpx;
-	background: #20242c;
-	color: #fff;
-	font-size: 26rpx;
-	font-weight: 600;
+.form-panel {
+	padding: 24rpx;
+	margin-bottom: 22rpx;
 }
 
-.refresh-btn[disabled] {
+.form-row {
+	display: flex;
+	gap: 18rpx;
+}
+
+.field {
+	flex: 1;
+	margin-bottom: 18rpx;
+}
+
+.field-label {
+	display: block;
+	font-size: 24rpx;
+	color: #717783;
+	margin-bottom: 10rpx;
+}
+
+.field-input {
+	height: 72rpx;
+	padding: 0 20rpx;
+	background: #f1f3f5;
+	border-radius: 8rpx;
+	font-size: 28rpx;
+	color: #20242c;
+	box-sizing: border-box;
+}
+
+.primary-btn,
+.state-btn,
+.add-btn {
+	margin: 0;
+	border-radius: 8rpx;
+	font-weight: 700;
+}
+
+.primary-btn {
+	width: 100%;
+	height: 72rpx;
+	line-height: 72rpx;
+	background: #2f855a;
+	color: #fff;
+	font-size: 28rpx;
+}
+
+.primary-btn[disabled] {
 	background: #a8adb7;
 	color: #fff;
 }
 
-.nutrition-entry {
+.profile-card {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: 20rpx;
-	padding: 24rpx 26rpx;
-	background: #ffffff;
-	border-radius: 8rpx;
-	box-shadow: 0 4rpx 18rpx rgba(20, 24, 32, 0.06);
-	margin-bottom: 24rpx;
-	border-left: 8rpx solid #2f855a;
+	gap: 22rpx;
+	padding: 22rpx 24rpx;
+	margin-bottom: 22rpx;
 }
 
-.entry-title {
-	font-size: 30rpx;
-	color: #20242c;
-	font-weight: 700;
-	line-height: 1.25;
-}
-
-.entry-desc {
-	font-size: 24rpx;
-	color: #717783;
-	margin-top: 8rpx;
-}
-
-.entry-action {
+.profile-main {
 	min-width: 116rpx;
-	height: 58rpx;
-	line-height: 58rpx;
-	text-align: center;
+	height: 88rpx;
 	border-radius: 8rpx;
-	background: #2f855a;
-	color: #fff;
-	font-size: 24rpx;
-	font-weight: 700;
-}
-
-.state {
-	height: 420rpx;
+	background: #e8f4ee;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	background: #ffffff;
-	border-radius: 8rpx;
+}
+
+.profile-label {
+	font-size: 20rpx;
+	color: #2f855a;
+}
+
+.profile-value {
+	font-size: 32rpx;
+	font-weight: 700;
+	color: #1f6f49;
+}
+
+.profile-summary {
+	flex: 1;
+	font-size: 26rpx;
+	line-height: 1.45;
+	color: #4d5561;
+}
+
+.state {
+	height: 300rpx;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
 .state-title {
 	font-size: 30rpx;
 	color: #717783;
-	margin-bottom: 22rpx;
+	margin-bottom: 20rpx;
+}
+
+.state-btn {
+	min-width: 150rpx;
+	height: 64rpx;
+	line-height: 64rpx;
+	padding: 0 24rpx;
+	background: #20242c;
+	color: #fff;
+	font-size: 26rpx;
 }
 
 .recommend-list {
@@ -283,14 +358,11 @@ export default {
 .recommend-item {
 	display: flex;
 	padding: 22rpx;
-	background: #ffffff;
-	border-radius: 8rpx;
-	box-shadow: 0 4rpx 18rpx rgba(20, 24, 32, 0.06);
 }
 
 .dish-image {
-	width: 210rpx;
-	height: 210rpx;
+	width: 190rpx;
+	height: 190rpx;
 	border-radius: 8rpx;
 	background: #e9edf2;
 	flex-shrink: 0;
@@ -301,7 +373,7 @@ export default {
 	align-items: center;
 	justify-content: center;
 	color: #ffffff;
-	font-size: 40rpx;
+	font-size: 38rpx;
 	font-weight: 700;
 	background: #2f855a;
 }
@@ -309,59 +381,47 @@ export default {
 .dish-info {
 	flex: 1;
 	min-width: 0;
-	margin-left: 22rpx;
+	margin-left: 20rpx;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 }
 
 .dish-name {
-	font-size: 32rpx;
+	font-size: 31rpx;
 	font-weight: 700;
 	color: #20242c;
 	line-height: 1.25;
 }
 
-.dish-desc {
-	font-size: 25rpx;
+.dish-reason {
+	font-size: 24rpx;
 	color: #717783;
-	line-height: 1.4;
+	line-height: 1.45;
 	margin: 10rpx 0 14rpx;
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
 }
 
-.dish-meta {
+.dish-bottom {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 16rpx;
-	margin-bottom: 16rpx;
 }
 
 .dish-price {
-	font-size: 36rpx;
+	font-size: 34rpx;
 	color: #e5482f;
 	font-weight: 700;
 }
 
-.dish-sales {
-	font-size: 22rpx;
-	color: #9aa1ac;
-}
-
-.order-btn {
-	margin: 0;
-	width: 100%;
-	height: 64rpx;
-	line-height: 64rpx;
-	border-radius: 8rpx;
+.add-btn {
+	min-width: 172rpx;
+	height: 60rpx;
+	line-height: 60rpx;
+	padding: 0 20rpx;
 	background: #ff6b35;
 	color: #fff;
-	font-size: 27rpx;
-	font-weight: 700;
+	font-size: 25rpx;
 }
 
 .cart-bar {

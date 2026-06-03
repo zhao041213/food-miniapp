@@ -13,6 +13,12 @@
 			}
 		},
 		{
+			"path": "pages/nutritionist/nutritionist",
+			"style": {
+				"navigationBarTitleText": "AI营养师"
+			}
+		},
+		{
 			"path": "pages/cart/cart",
 			"style": {
 				"navigationBarTitleText": "购物车"
