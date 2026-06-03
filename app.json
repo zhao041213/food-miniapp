@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/recommend/recommend",
     "pages/cart/cart",
     "pages/order/order",
     "pages/mine/mine",
@@ -22,6 +23,10 @@
       {
         "pagePath": "pages/index/index",
         "text": "首页"
+      },
+      {
+        "pagePath": "pages/recommend/recommend",
+        "text": "AI推荐"
       },
       {
         "pagePath": "pages/order/order",

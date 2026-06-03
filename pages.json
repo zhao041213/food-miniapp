@@ -7,6 +7,12 @@
 			}
 		},
 		{
+			"path": "pages/recommend/recommend",
+			"style": {
+				"navigationBarTitleText": "AI菜品推荐"
+			}
+		},
+		{
 			"path": "pages/cart/cart",
 			"style": {
 				"navigationBarTitleText": "购物车"
@@ -58,6 +64,10 @@
 			{
 				"pagePath": "pages/index/index",
 				"text": "首页"
+			},
+			{
+				"pagePath": "pages/recommend/recommend",
+				"text": "AI推荐"
 			},
 			{
 				"pagePath": "pages/order/order",
