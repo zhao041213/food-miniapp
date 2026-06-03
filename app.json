@@ -2,6 +2,7 @@
   "pages": [
     "pages/index/index",
     "pages/recommend/recommend",
+    "pages/smart-order/smart-order",
     "pages/nutritionist/nutritionist",
     "pages/cart/cart",
     "pages/order/order",

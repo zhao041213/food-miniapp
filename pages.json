@@ -13,6 +13,12 @@
 			}
 		},
 		{
+			"path": "pages/smart-order/smart-order",
+			"style": {
+				"navigationBarTitleText": "智能点餐Agent"
+			}
+		},
+		{
 			"path": "pages/nutritionist/nutritionist",
 			"style": {
 				"navigationBarTitleText": "AI营养师"

@@ -11,12 +11,20 @@
 			</button>
 		</view>
 
-		<view class="nutrition-entry" @click="goToNutritionist">
+		<view class="agent-entry" @click="goToSmartOrderAgent">
+			<view>
+				<view class="entry-title">智能点餐 Agent</view>
+				<view class="entry-desc">输入预算和口味，自动组合菜品</view>
+			</view>
+			<view class="entry-action blue">去点餐</view>
+		</view>
+
+		<view class="agent-entry nutrition" @click="goToNutritionist">
 			<view>
 				<view class="entry-title">AI营养师</view>
 				<view class="entry-desc">按身高、体重和年龄推荐菜品</view>
 			</view>
-			<view class="entry-action">去测算</view>
+			<view class="entry-action green">去测算</view>
 		</view>
 
 		<view v-if="loading" class="state">
@@ -139,6 +147,11 @@ export default {
 				duration: 1000
 			})
 		},
+		goToSmartOrderAgent() {
+			uni.navigateTo({
+				url: '/pages/smart-order/smart-order'
+			})
+		},
 		goToNutritionist() {
 			uni.navigateTo({
 				url: '/pages/nutritionist/nutritionist'
@@ -220,7 +233,7 @@ export default {
 	color: #fff;
 }
 
-.nutrition-entry {
+.agent-entry {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -230,6 +243,10 @@ export default {
 	border-radius: 8rpx;
 	box-shadow: 0 4rpx 18rpx rgba(20, 24, 32, 0.06);
 	margin-bottom: 24rpx;
+	border-left: 8rpx solid #3157d4;
+}
+
+.agent-entry.nutrition {
 	border-left: 8rpx solid #2f855a;
 }
 
@@ -252,10 +269,17 @@ export default {
 	line-height: 58rpx;
 	text-align: center;
 	border-radius: 8rpx;
-	background: #2f855a;
 	color: #fff;
 	font-size: 24rpx;
 	font-weight: 700;
+}
+
+.entry-action.blue {
+	background: #3157d4;
+}
+
+.entry-action.green {
+	background: #2f855a;
 }
 
 .state {
